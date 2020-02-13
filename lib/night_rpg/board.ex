@@ -11,6 +11,7 @@ defmodule NightRPG.Board do
   """
 
   use GenServer
+  alias NightRPG.{Game,Hero}
 
   @default_tiles [
     [1, 1, 1, 1, 1],
@@ -24,13 +25,14 @@ defmodule NightRPG.Board do
 
   # Client
 
-  def start_link(args) do
-    tiles = Map.get(args, :tiles, @default_tiles)
-    respawn_interval = Map.get(args, :respawn_interval, @default_respawn_interval)
+  def start_link(game, opts \\ %{}) do
+    tiles = Map.get(opts, :tiles, @default_tiles)
+    respawn_interval = Map.get(opts, :respawn_interval, @default_respawn_interval)
 
     GenServer.start_link(__MODULE__, %{
-      respawns: 0,
+      game: game,
       respawn_interval: respawn_interval,
+      respawns: 0,
       tiles: tiles
     })
   end
@@ -61,8 +63,15 @@ defmodule NightRPG.Board do
 
   def handle_info(:respawn, state) do
     # send respawn trigger
+    {:ok, pids} = Game.which_heros(state.game)
+    Enum.each(pids, &Hero.respawn/1)
+
     schedule_respawn(state.respawn_interval)
     {:noreply, Map.update(state, :respawns, 0, &(&1 + 1))}
+  end
+
+  def handle_call(:state, _from, state) do
+    {:reply, state, state}
   end
 
   def handle_call({:check, [x, y]}, _from, state) do

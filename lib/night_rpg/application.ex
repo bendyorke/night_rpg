@@ -16,6 +16,7 @@ defmodule NightRPG.Application do
       # {NightRPG.Worker, arg},
       {Registry, keys: :unique, name: :games},
       {Registry, keys: :unique, name: :heroes},
+      {DynamicSupervisor, strategy: :one_for_one, name: NightRPG.GamesSupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -14,7 +14,7 @@ defmodule NightRPG.Hero do
 
   # Client
   def start_link(game, name) do
-    state = %{alive: true, game: game, name: name}
+    state = %{game: game, name: name, coords: nil}
     GenServer.start_link(__MODULE__, state, name: Game.hero_tuple(game, name))
   end
 
@@ -49,8 +49,12 @@ defmodule NightRPG.Hero do
     {:ok, state}
   end
 
+  def handle_call(:state, _from, state) do
+    {:reply, state, state}
+  end
+
   def handle_call(:alive, _from, state) do
-    {:reply, state.alive, state}
+    {:reply, state.coords != nil, state}
   end
 
   def handle_call(:get_coords, _from, state) do
@@ -75,7 +79,7 @@ defmodule NightRPG.Hero do
 
   def handle_cast({:dodge, coords}, state) do
     if in_range(coords, state.coords) do
-      {:noreply, %{state | alive: false}}
+      {:noreply, %{state | coords: nil}}
     else
       {:noreply, state}
     end
@@ -85,7 +89,7 @@ defmodule NightRPG.Hero do
     {:ok, board_pid} = Game.which_board(state.game)
     coords = Board.random_movable_tile(board_pid)
 
-    {:noreply, %{state | alive: true, coords: coords}}
+    {:noreply, %{state | coords: coords}}
   end
 
   defp in_range([x1, y1], [x2, y2]) do
