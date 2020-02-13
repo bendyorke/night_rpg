@@ -10,14 +10,12 @@ defmodule NightRPG.Hero do
   """
 
   use GenServer
-  alias NightRPG.Board
+  alias NightRPG.{Board, Game}
 
   # Client
-
-  def start_link(args) do
-    board_pid = Map.get(args, :board_pid)
-
-    GenServer.start_link(__MODULE__, %{alive: true, board_pid: board_pid})
+  def start_link(game, name) do
+    state = %{alive: true, game: game, name: name}
+    GenServer.start_link(__MODULE__, state, name: Game.hero_tuple(game, name))
   end
 
   def coords(pid) do
@@ -48,8 +46,7 @@ defmodule NightRPG.Hero do
   # Server
 
   def init(state) do
-    coords = Board.random_movable_tile(state.board_pid)
-    {:ok, Map.put(state, :coords, coords)}
+    {:ok, state}
   end
 
   def handle_call(:alive, _from, state) do
@@ -63,8 +60,9 @@ defmodule NightRPG.Hero do
   def handle_cast({:move, [dx, dy]}, state) do
     [x, y] = state.coords
     next_coords = [x + dx, y + dy]
+    {:ok, board_pid} = Game.which_board(state.game)
 
-    if Board.is_movable?(state.board_pid, next_coords) do
+    if Board.is_movable?(board_pid, next_coords) do
       {:noreply, %{state | coords: next_coords}}
     else
       {:noreply, state}
@@ -84,7 +82,8 @@ defmodule NightRPG.Hero do
   end
 
   def handle_cast(:respawn, state) do
-    coords = Board.random_movable_tile(state.board_pid)
+    {:ok, board_pid} = Game.which_board(state.game)
+    coords = Board.random_movable_tile(board_pid)
 
     {:noreply, %{state | alive: true, coords: coords}}
   end

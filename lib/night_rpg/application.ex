@@ -11,9 +11,11 @@ defmodule NightRPG.Application do
       # Start the Ecto repository
       NightRPG.Repo,
       # Start the endpoint when the application starts
-      NightRPGWeb.Endpoint
+      NightRPGWeb.Endpoint,
       # Starts a worker by calling: NightRPG.Worker.start_link(arg)
       # {NightRPG.Worker, arg},
+      {Registry, keys: :unique, name: :games},
+      {Registry, keys: :unique, name: :heroes},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

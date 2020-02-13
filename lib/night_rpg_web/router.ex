@@ -17,6 +17,7 @@ defmodule NightRPGWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/:name", GameController, :show
   end
 
   # Other scopes may use custom stacks.
