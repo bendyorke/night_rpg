@@ -10,7 +10,7 @@ defmodule NightRPG.Hero do
   """
 
   use GenServer
-  alias NightRPG.{Board, Game}
+  alias NightRPG.{Board, Game, Hero}
 
   # Client
   def start_link(game, name) do
@@ -27,12 +27,13 @@ defmodule NightRPG.Hero do
   def move(pid, :right), do: GenServer.cast(pid, {:move, [1, 0]})
   def move(pid, :down), do: GenServer.cast(pid, {:move, [0, 1]})
 
-  def attack(pid) do
-    GenServer.cast(pid, :attack)
+  def move(game, name, direction) do
+    {:ok, pid} = Game.lookup_hero(game, name)
+    Hero.move(pid, direction)
   end
 
-  def dodge(pid, coords) do
-    GenServer.cast(pid, {:dodge, coords})
+  def dodge(pid, coords, from) do
+    GenServer.cast(pid, {:dodge, coords, from})
   end
 
   def respawn(pid) do
@@ -73,12 +74,8 @@ defmodule NightRPG.Hero do
     end
   end
 
-  def handle_cast(:attack, state) do
-    {:noreply, state}
-  end
-
-  def handle_cast({:dodge, coords}, state) do
-    if in_range(coords, state.coords) do
+  def handle_cast({:dodge, coords, from}, state) do
+    if state.name != from && in_range(coords, state.coords) do
       {:noreply, %{state | coords: nil}}
     else
       {:noreply, state}
@@ -86,10 +83,14 @@ defmodule NightRPG.Hero do
   end
 
   def handle_cast(:respawn, state) do
-    {:ok, board_pid} = Game.which_board(state.game)
-    coords = Board.random_movable_tile(board_pid)
+    unless state.coords do
+      {:ok, board_pid} = Game.which_board(state.game)
+      coords = Board.random_movable_tile(board_pid)
 
-    {:noreply, %{state | coords: coords}}
+      {:noreply, %{state | coords: coords}}
+    else
+      {:noreply, state}
+    end
   end
 
   defp in_range([x1, y1], [x2, y2]) do

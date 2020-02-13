@@ -63,8 +63,9 @@ defmodule NightRPG.Board do
 
   def handle_info(:respawn, state) do
     # send respawn trigger
-    {:ok, pids} = Game.which_heros(state.game)
+    {:ok, pids} = Game.which_heroes(state.game)
     Enum.each(pids, &Hero.respawn/1)
+    Game.broadcast_update(state.game)
 
     schedule_respawn(state.respawn_interval)
     {:noreply, Map.update(state, :respawns, 0, &(&1 + 1))}

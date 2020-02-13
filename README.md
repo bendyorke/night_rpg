@@ -5,7 +5,7 @@ A small OTP based MMORPG, built per the requirements of Nightwatch.
 ## general structure
 
   * `GameRegistry` to register all games to
-  * `GameSupervisor` to supervise a board and all heros
+  * `GameSupervisor` to supervise a board and all heroes
   * `Board` to validate player moves and respawn dead heroes
   * `Hero` to store position, life, request moves, attack, and listen for attacks
 

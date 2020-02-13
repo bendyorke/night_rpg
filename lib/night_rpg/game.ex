@@ -22,7 +22,27 @@ defmodule NightRPG.Game do
         {:ok, pid}
 
       [] ->
-        DynamicSupervisor.start_child(via_tuple(name), hero_init(name, hero_name))
+        {:ok, pid} = DynamicSupervisor.start_child(via_tuple(name), hero_init(name, hero_name))
+        broadcast_update(name)
+        {:ok, pid}
+    end
+  end
+
+  def subscribe(name) do
+    Phoenix.PubSub.subscribe(NightRPG.PubSub, name)
+  end
+
+  def broadcast_update(name) do
+    Phoenix.PubSub.broadcast(NightRPG.PubSub, name, :update)
+  end
+
+  def lookup_hero(game, name) do
+    case Registry.lookup(:heroes, "#{game} #{name}") do
+      [{pid, _}] ->
+        {:ok, pid}
+
+      [] ->
+        {:error, :no_hero_found}
     end
   end
 
@@ -52,7 +72,7 @@ defmodule NightRPG.Game do
     {:ok, pid}
   end
 
-  def which_heros(name) do
+  def which_heroes(name) do
     pids =
       name
       |> which_children()
@@ -64,7 +84,7 @@ defmodule NightRPG.Game do
 
   def state(name) do
     {:ok, board_pid} = Game.which_board(name)
-    {:ok, hero_pids} = Game.which_heros(name)
+    {:ok, hero_pids} = Game.which_heroes(name)
 
     {
       GenServer.call(board_pid, :state),

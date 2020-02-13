@@ -2,3 +2,54 @@
 
 @import "./phoenix.css";
 @import "../../deps/phoenix_live_view/assets/css/live_view.css";
+
+.game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game header {
+  text-align: center;
+  border-bottom: none;
+}
+
+.game p {
+  font-style: italic;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.board {
+  margin: 24px 0;
+}
+
+.row {
+  display: flex;
+}
+
+.tile {
+  width: 50px;
+  height: 50px;
+  border: 1px solid grey;
+}
+
+.tile.wall {
+  background: black;
+}
+
+.tile.floor {
+  background: darkgrey;
+}
+
+.tile.hero {
+  background: green;
+}
+
+.tile.enemy {
+  background: orange;
+}
+
+.respawn-pool {
+  text-align: center;
+}
