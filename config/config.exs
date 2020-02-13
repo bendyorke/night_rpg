@@ -16,7 +16,8 @@ config :night_rpg, NightRPGWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "GeISrEmdtNhvYZq+m6zy3elR9J50bTAOaFR/pTnqepxiUsA4x8EgMOQyUC7psrQd",
   render_errors: [view: NightRPGWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: NightRPG.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: NightRPG.PubSub, adapter: Phoenix.PubSub.PG2],
+  live_view: [signing_salt: "cMizIz16c/oLjN/QttJzyr58PkqjpFq2zREki+EzFPjSMmef6zbwuuhyzcjAR7+H"]
 
 # Configures Elixir's Logger
 config :logger, :console,

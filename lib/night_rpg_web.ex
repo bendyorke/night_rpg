@@ -23,6 +23,7 @@ defmodule NightRPGWeb do
 
       import Plug.Conn
       import NightRPGWeb.Gettext
+      import Phoenix.LiveView.Controller
       alias NightRPGWeb.Router.Helpers, as: Routes
     end
   end
@@ -41,6 +42,7 @@ defmodule NightRPGWeb do
 
       import NightRPGWeb.ErrorHelpers
       import NightRPGWeb.Gettext
+      import Phoenix.LiveView.Helpers
       alias NightRPGWeb.Router.Helpers, as: Routes
     end
   end
@@ -50,6 +52,7 @@ defmodule NightRPGWeb do
       use Phoenix.Router
       import Plug.Conn
       import Phoenix.Controller
+      import Phoenix.LiveView.Router
     end
   end
 
