@@ -2,9 +2,11 @@
 
 A small OTP based MMORPG, built per the requirements of Nightwatch.
 
+Live link: https://dry-sands-29544.herokuapp.com
+
 ## general structure
 
-  * `GameRegistry` to register all games to
+  * `GamesSupervisor` to supervise all games
   * `GameSupervisor` to supervise a board and all heroes
   * `Board` to validate player moves and respawn dead heroes
   * `Hero` to store position, life, request moves, attack, and listen for attacks
