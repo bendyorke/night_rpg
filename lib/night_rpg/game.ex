@@ -46,10 +46,10 @@ defmodule NightRPG.Game do
     end
   end
 
-  def start_game(name) do
+  def start_game(name, board_opts \\ %{}) do
     case DynamicSupervisor.start_child(GamesSupervisor, game_init(name)) do
       {:ok, pid} ->
-        DynamicSupervisor.start_child(via_tuple(name), board_init(name))
+        DynamicSupervisor.start_child(via_tuple(name), board_init(name, board_opts))
         {:ok, pid}
 
       error ->
@@ -108,10 +108,10 @@ defmodule NightRPG.Game do
     }
   end
 
-  def board_init(name) do
+  def board_init(name, board_opts \\ %{}) do
     %{
       id: Board,
-      start: {Board, :start_link, [%{game: name}]},
+      start: {Board, :start_link, [Map.put(board_opts, :game, name)]},
       restart: :transient
     }
   end
@@ -119,8 +119,7 @@ defmodule NightRPG.Game do
   def hero_init(name, hero_name) do
     %{
       id: hero_name,
-      # start: {Hero, :start_link, [%{board_pid: board_pid}]},
-      start: {Hero, :start_link, [name, hero_name]},
+      start: {Hero, :start_link, [%{game: name, name: hero_name}]},
       restart: :transient
     }
   end

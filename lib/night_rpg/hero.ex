@@ -13,13 +13,9 @@ defmodule NightRPG.Hero do
   alias NightRPG.{Board, Game, Hero}
 
   # Client
-  def start_link(game, name) do
+  def start_link(%{name: name, game: game}) do
     state = %{game: game, name: name, coords: nil}
     GenServer.start_link(__MODULE__, state, name: Game.hero_tuple(game, name))
-  end
-
-  def coords(pid) do
-    GenServer.call(pid, :get_coords)
   end
 
   def move(pid, :left), do: GenServer.cast(pid, {:move, [-1, 0]})
@@ -56,10 +52,6 @@ defmodule NightRPG.Hero do
 
   def handle_call(:alive, _from, state) do
     {:reply, state.coords != nil, state}
-  end
-
-  def handle_call(:get_coords, _from, state) do
-    {:reply, state.coords, state}
   end
 
   def handle_cast({:move, [dx, dy]}, state) do
