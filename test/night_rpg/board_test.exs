@@ -1,5 +1,5 @@
 defmodule NightRPG.BoardTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   alias NightRPG.Board
 

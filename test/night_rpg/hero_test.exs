@@ -1,5 +1,5 @@
 defmodule NightRPG.HeroTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   alias NightRPG.{Game, Board, Hero}
 
@@ -15,11 +15,10 @@ defmodule NightRPG.HeroTest do
 
   setup do
     {:ok, game_pid} = Game.start_game(@game, %{tiles: @test_tiles})
-
     pid = start_supervised!({Hero, %{game: @game, name: @hero}})
 
     on_exit(fn ->
-      DynamicSupervisor.stop(game_pid, :shutdown)
+      :ok = DynamicSupervisor.stop(game_pid, :shutdown)
     end)
 
     %{pid: pid, game_pid: game_pid}

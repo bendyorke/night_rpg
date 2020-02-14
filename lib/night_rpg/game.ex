@@ -64,10 +64,16 @@ defmodule NightRPG.Game do
   end
 
   def which_board(name) do
-    {_, pid, _, _} =
+    board_child =
       name
       |> which_children
       |> Enum.find(fn {_, _, _, [type]} -> type == Board end)
+
+    pid =
+      case board_child do
+        {_, pid, _, _} -> pid
+        _ -> nil
+      end
 
     {:ok, pid}
   end
