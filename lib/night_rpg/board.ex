@@ -25,7 +25,8 @@ defmodule NightRPG.Board do
 
   # Client
 
-  def start_link(game, opts \\ %{}) do
+  def start_link(opts \\ %{}) do
+    game = opts.game
     tiles = Map.get(opts, :tiles, @default_tiles)
     respawn_interval = Map.get(opts, :respawn_interval, @default_respawn_interval)
 

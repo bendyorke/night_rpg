@@ -111,7 +111,7 @@ defmodule NightRPG.Game do
   def board_init(name) do
     %{
       id: Board,
-      start: {Board, :start_link, [name]},
+      start: {Board, :start_link, [%{game: name}]},
       restart: :transient
     }
   end

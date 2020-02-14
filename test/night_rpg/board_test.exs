@@ -10,7 +10,8 @@ defmodule NightRPG.BoardTest do
   ]
 
   setup do
-    pid = start_supervised!({Board, %{tiles: @test_tiles, respawn_interval: 10}})
+    start_supervised!({NightRPG.Game, "test"})
+    pid = start_supervised!({Board, %{tiles: @test_tiles, respawn_interval: 10, game: "test"}})
     %{pid: pid}
   end
 
