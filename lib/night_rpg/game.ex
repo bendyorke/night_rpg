@@ -3,8 +3,12 @@ defmodule NightRPG.Game do
 
   alias NightRPG.{GamesSupervisor, Game, Board, Hero}
 
+  # Client
+
   def via_tuple(name), do: {:via, Registry, {:games, name}}
   def hero_tuple(name, hero_name), do: {:via, Registry, {:heroes, "#{name} #{hero_name}"}}
+  def subscribe(name), do: Phoenix.PubSub.subscribe(NightRPG.PubSub, name)
+  def broadcast_update(name), do: Phoenix.PubSub.broadcast(NightRPG.PubSub, name, :update)
 
   def connect(name) do
     case Registry.lookup(:games, name) do
@@ -28,12 +32,14 @@ defmodule NightRPG.Game do
     end
   end
 
-  def subscribe(name) do
-    Phoenix.PubSub.subscribe(NightRPG.PubSub, name)
-  end
+  def state(name) do
+    {:ok, board_pid} = Game.which_board(name)
+    {:ok, hero_pids} = Game.which_heroes(name)
 
-  def broadcast_update(name) do
-    Phoenix.PubSub.broadcast(NightRPG.PubSub, name, :update)
+    {
+      GenServer.call(board_pid, :state),
+      Enum.map(hero_pids, fn pid -> GenServer.call(pid, :state) end)
+    }
   end
 
   def lookup_hero(game, name) do
@@ -43,17 +49,6 @@ defmodule NightRPG.Game do
 
       [] ->
         {:error, :no_hero_found}
-    end
-  end
-
-  def start_game(name, board_opts \\ %{}) do
-    case DynamicSupervisor.start_child(GamesSupervisor, game_init(name)) do
-      {:ok, pid} ->
-        DynamicSupervisor.start_child(via_tuple(name), board_init(name, board_opts))
-        {:ok, pid}
-
-      error ->
-        error
     end
   end
 
@@ -88,15 +83,18 @@ defmodule NightRPG.Game do
     {:ok, pids}
   end
 
-  def state(name) do
-    {:ok, board_pid} = Game.which_board(name)
-    {:ok, hero_pids} = Game.which_heroes(name)
+  def start_game(name, board_opts \\ %{}) do
+    case DynamicSupervisor.start_child(GamesSupervisor, game_init(name)) do
+      {:ok, pid} ->
+        DynamicSupervisor.start_child(via_tuple(name), board_init(name, board_opts))
+        {:ok, pid}
 
-    {
-      GenServer.call(board_pid, :state),
-      Enum.map(hero_pids, fn pid -> GenServer.call(pid, :state) end)
-    }
+      error ->
+        error
+    end
   end
+
+  # Server
 
   def start_link(name) do
     DynamicSupervisor.start_link(__MODULE__, [], name: via_tuple(name))
@@ -106,7 +104,9 @@ defmodule NightRPG.Game do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def game_init(name) do
+  # Private
+
+  defp game_init(name) do
     %{
       id: Game,
       start: {Game, :start_link, [name]},
@@ -114,7 +114,7 @@ defmodule NightRPG.Game do
     }
   end
 
-  def board_init(name, board_opts \\ %{}) do
+  defp board_init(name, board_opts \\ %{}) do
     %{
       id: Board,
       start: {Board, :start_link, [Map.put(board_opts, :game, name)]},
@@ -122,7 +122,7 @@ defmodule NightRPG.Game do
     }
   end
 
-  def hero_init(name, hero_name) do
+  defp hero_init(name, hero_name) do
     %{
       id: hero_name,
       start: {Hero, :start_link, [%{game: name, name: hero_name}]},
