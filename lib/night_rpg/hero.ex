@@ -11,6 +11,7 @@ defmodule NightRPG.Hero do
 
   use GenServer
   alias NightRPG.{Board, Game, Hero}
+  alias NightRPGWeb.Presence
 
   # Client
   def start_link(%{name: name, game: game}) do
@@ -43,6 +44,7 @@ defmodule NightRPG.Hero do
   # Server
 
   def init(state) do
+    NightRPGWeb.Endpoint.subscribe(Game.topic(state.game))
     {:ok, state}
   end
 
@@ -83,6 +85,29 @@ defmodule NightRPG.Hero do
     else
       {:noreply, state}
     end
+  end
+
+  def handle_info(%{event: "presence_diff", topic: topic}, state) do
+    hero_has_user? =
+      topic
+      |> Presence.list()
+      |> Enum.find(fn {_id, data} ->
+        state.name == data
+        |> Map.get(:metas, [%{}])
+        |> List.first()
+        |> Map.get(:name)
+      end)
+      |> IO.inspect(label: :list)
+
+    if hero_has_user? do
+      {:noreply, state}
+    else
+      {:stop, :shutdown, state}
+    end
+  end
+
+  def handle_info(_, state) do
+    {:noreply, state}
   end
 
   defp in_range([x1, y1], [x2, y2]) do

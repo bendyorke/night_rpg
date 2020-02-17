@@ -13,6 +13,16 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import LiveSocket from "phoenix_live_view"
 
+const decimalToHex = dec =>  ('0' + dec.toString(16)).substr(-2)
+
+const generateId = length => {
+  const base = new Uint8Array(length / 2)
+  window.crypto.getRandomValues(base)
+  return Array.from(base, decimalToHex).join('')
+}
+
+const uuid = generateId(20)
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
-let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}});
+let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken, uuid}});
 liveSocket.connect()

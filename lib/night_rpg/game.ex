@@ -9,6 +9,7 @@ defmodule NightRPG.Game do
   def hero_tuple(name, hero_name), do: {:via, Registry, {:heroes, "#{name} #{hero_name}"}}
   def subscribe(name), do: Phoenix.PubSub.subscribe(NightRPG.PubSub, name)
   def broadcast_update(name), do: Phoenix.PubSub.broadcast(NightRPG.PubSub, name, :update)
+  def topic(name), do: "game:" <> name
 
   def connect(name) do
     case Registry.lookup(:games, name) do
@@ -97,10 +98,10 @@ defmodule NightRPG.Game do
   # Server
 
   def start_link(name) do
-    DynamicSupervisor.start_link(__MODULE__, [], name: via_tuple(name))
+    DynamicSupervisor.start_link(__MODULE__, name, name: via_tuple(name))
   end
 
-  def init(_args) do
+  def init(name) do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 

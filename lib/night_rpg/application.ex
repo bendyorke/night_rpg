@@ -12,6 +12,7 @@ defmodule NightRPG.Application do
       NightRPG.Repo,
       # Start the endpoint when the application starts
       NightRPGWeb.Endpoint,
+      NightRPGWeb.Presence,
       # Starts a worker by calling: NightRPG.Worker.start_link(arg)
       # {NightRPG.Worker, arg},
       {Registry, keys: :unique, name: :games},
