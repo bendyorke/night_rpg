@@ -41,6 +41,14 @@ defmodule NightRPG.Hero do
     GenServer.call(pid, :alive)
   end
 
+  def state(pid) do
+    try do
+      GenServer.call(pid, :state)
+    catch
+      :exit, {:noproc, _} -> :error
+    end
+  end
+
   # Server
 
   def init(state) do
@@ -69,7 +77,7 @@ defmodule NightRPG.Hero do
   end
 
   def handle_cast({:dodge, coords, from}, state) do
-    if state.name != from && in_range(coords, state.coords) do
+    if state.name != from && state.coords != nil && in_range(coords, state.coords) do
       {:noreply, %{state | coords: nil}}
     else
       {:noreply, state}
@@ -97,7 +105,6 @@ defmodule NightRPG.Hero do
         |> List.first()
         |> Map.get(:name)
       end)
-      |> IO.inspect(label: :list)
 
     if hero_has_user? do
       {:noreply, state}

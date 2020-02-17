@@ -1,6 +1,5 @@
 defmodule NightRPGWeb.Router do
   use NightRPGWeb, :router
-  import Phoenix.LiveView.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -19,7 +18,7 @@ defmodule NightRPGWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
-    live "/:game", GameLive
+    get "/:game", GameController, :show
   end
 
   # Other scopes may use custom stacks.

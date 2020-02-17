@@ -50,6 +50,14 @@ defmodule NightRPG.Board do
     GenServer.call(pid, :get_respawns_count)
   end
 
+  def state(pid) do
+    try do
+      GenServer.call(pid, :state)
+    catch
+      :exit, {:noproc, _} -> :error
+    end
+  end
+
   defp schedule_respawn(interval) do
     Process.send_after(self(), :respawn, interval)
   end

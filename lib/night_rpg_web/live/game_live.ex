@@ -8,9 +8,7 @@ defmodule NightRPGWeb.GameLive do
     <div class="game" phx-window-keyup="keyup">
       <header>
         <h1><%= @game %></h1>
-        <%= if @joined do %>
-          <p>controlling <%= @name %></p>
-        <% end %>
+        <p>controlling <%= @name %></p>
       </header>
 
       <div class="board">
@@ -53,9 +51,9 @@ defmodule NightRPGWeb.GameLive do
     """
   end
 
-  def mount(params, _session, socket) do
-    game = Map.get(params, "game")
-    name = Map.get(params, "name", generate_random_name())
+  def mount(_params, session, socket) do
+    game = Map.get(session, "game")
+    name = Map.get(session, "name")
     topic = Game.topic(game)
 
     # Subscribe to game updates
@@ -73,12 +71,13 @@ defmodule NightRPGWeb.GameLive do
     # Connect to the game
     {:ok, _pid} = Game.connect(game)
 
+    # Join the game
+    {:ok, _pid} = Game.join(game, name)
+    Game.broadcast_update(game)
+
     # Get initial game state
     {board, heroes} = Game.state(game)
 
-    # TODO: this fixes an issue caused by mount being called twice.
-    # Move name logic to a controller action to avoid
-    Process.send_after(self(), :join, 10)
 
     {:ok,
       assign(socket,
@@ -89,13 +88,6 @@ defmodule NightRPGWeb.GameLive do
         name: name,
         users: users
       )}
-  end
-
-  def handle_info(:join, socket) do
-    {:ok, _pid} = Game.join(socket.assigns.game, socket.assigns.name)
-    Game.broadcast_update(socket.assigns.game)
-
-    {:noreply, assign(socket, joined: true)}
   end
 
   def handle_info(:update, socket) do
@@ -119,8 +111,10 @@ defmodule NightRPGWeb.GameLive do
       socket.assigns.heroes
       |> Enum.find(fn h -> h.name == socket.assigns.name end)
 
-    Enum.each(pids, fn pid -> Hero.dodge(pid, hero.coords, hero.name) end)
-    Game.broadcast_update(socket.assigns.game)
+    unless hero.coords == nil do
+      Enum.each(pids, fn pid -> Hero.dodge(pid, hero.coords, hero.name) end)
+      Game.broadcast_update(socket.assigns.game)
+    end
 
     {:noreply, socket}
   end
@@ -141,12 +135,6 @@ defmodule NightRPGWeb.GameLive do
     end
 
     {:noreply, socket}
-  end
-
-  def generate_random_name() do
-    ?a..?z
-    |> Enum.take_random(8)
-    |> List.to_string()
   end
 
   def status_at_tile(assigns, x, y) do

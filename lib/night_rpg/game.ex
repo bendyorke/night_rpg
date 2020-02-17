@@ -38,8 +38,10 @@ defmodule NightRPG.Game do
     {:ok, hero_pids} = Game.which_heroes(name)
 
     {
-      GenServer.call(board_pid, :state),
-      Enum.map(hero_pids, fn pid -> GenServer.call(pid, :state) end)
+      Board.state(board_pid),
+      hero_pids
+      |> Enum.map(&Hero.state/1)
+      |> Enum.filter(&(&1 != :error))
     }
   end
 
@@ -101,7 +103,7 @@ defmodule NightRPG.Game do
     DynamicSupervisor.start_link(__MODULE__, name, name: via_tuple(name))
   end
 
-  def init(name) do
+  def init(_name) do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
@@ -115,7 +117,7 @@ defmodule NightRPG.Game do
     }
   end
 
-  defp board_init(name, board_opts \\ %{}) do
+  defp board_init(name, board_opts) do
     %{
       id: Board,
       start: {Board, :start_link, [Map.put(board_opts, :game, name)]},
